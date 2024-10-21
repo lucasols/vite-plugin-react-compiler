@@ -1,68 +1,84 @@
-import MagicString from 'magic-string'
+import type { TransformOptions } from '@babel/core'
+import { transformAsync } from '@babel/core'
 import { Plugin } from 'vite'
-import { murmur2 } from './hash'
+// @ts-ignore
+import babelPluginReactCompiler from 'babel-plugin-react-compiler'
 
-export function ViteStableId(): Plugin {
-  let isDev = false
+type Options = {
+  babelConfig?: string
+  root?: string
+  filterFile?: (filepath: string, code: string) => boolean
+  reactCompilerConfig?: {
+    target?: '18' | '17' | '19'
+  }
+}
 
-  const virtualModuleId = 'virtual:stable-id'
-
-  const resolvedModuleId = `\0${virtualModuleId}`
+export function viteReactCompiler({
+  babelConfig: babelConfigPath,
+  root,
+  reactCompilerConfig,
+  filterFile,
+}: Options = {}): Plugin {
+  let projectRoot = process.cwd()
+  const tsRE = /\.tsx?$/
 
   return {
     name: 'vite-react-compiler',
     enforce: 'pre',
     configResolved(config) {
-      isDev = config.command === 'serve'
+      projectRoot = root || config.root
     },
-    resolveId(id) {
-      return id === virtualModuleId ? resolvedModuleId : undefined
-    },
-    load(id) {
-      if (id === resolvedModuleId) {
-        return `export function stableId() { throw new Error('This function should not be called') }`
+    async transform(code, id) {
+      if (id.includes('/node_modules/')) return
+
+      const babelOptions: TransformOptions = {
+        babelrc: false,
+        configFile: babelConfigPath,
+        plugins: [],
       }
 
-      return undefined
-    },
-    transform(code, id) {
-      if (code.includes(virtualModuleId) && code.includes(`stableId(`)) {
-        return replaceStableIdCalls(code, id, isDev)
+      const [filepath] = id.split('?')
+
+      if (!filepath) return
+
+      if (filterFile && !filterFile(filepath, code)) return
+
+      const parserPlugins: ('jsx' | 'typescript')[] = []
+
+      if (!filepath.endsWith('.ts')) {
+        parserPlugins.push('jsx')
       }
 
-      return undefined
+      if (tsRE.test(filepath)) {
+        parserPlugins.push('typescript')
+      }
+
+      const result = await transformAsync(code, {
+        ...babelOptions,
+        root: projectRoot,
+        filename: id,
+        sourceFileName: filepath,
+        parserOpts: {
+          ...babelOptions.parserOpts,
+          sourceType: 'module',
+          allowAwaitOutsideFunction: true,
+          plugins: parserPlugins,
+        },
+        generatorOpts: {
+          ...babelOptions.generatorOpts,
+          decoratorsBeforeExport: true,
+        },
+        plugins: [[babelPluginReactCompiler, reactCompilerConfig]],
+        sourceMaps: true,
+      })
+
+      if (result) {
+        let code = result.code!
+
+        return { code, map: result.map }
+      }
+
+      return
     },
   }
-}
-
-export function replaceStableIdCalls(
-  code: string,
-  moduleId: string,
-  isDev: boolean,
-): { code: string; map?: any } {
-  const stableIdRegex = /stableId\((?:(?:"|')([A-Za-z-0-9_]+)(?:"|'))?\)/g
-
-  const moduleStableId = murmur2(moduleId)
-
-  const s = new MagicString(code)
-
-  let occurrences = 0
-
-  s.replace(stableIdRegex, (_, m) => {
-    occurrences++
-
-    if (!isDev) return `'${moduleStableId}${occurrences}'`
-
-    return `'s${moduleStableId}${occurrences}${m ? `-${m}` : ''}'`
-  })
-
-  const newCode = s.toString()
-
-  if (newCode.includes('stableId(')) {
-    throw new Error(
-      "Failed to replace all stableId() calls, check if you are using invalid labels, labels should contain only letters, number,`-` and `_`. Invalid examples: like `stableId('')` or `stableId('fo ds')`",
-    )
-  }
-
-  return { code: newCode, map: s.generateMap() }
 }
