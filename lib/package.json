@@ -16,7 +16,7 @@
     "dist",
     "*.d.ts"
   ],
-  "repository": "github:lucasols/vite-plugin-stable-id",
+  "repository": "github:lucasols/vite-plugin-react-compiler",
   "author": "Lucas Santos",
   "type": "module",
   "main": "./dist/main.cjs",
