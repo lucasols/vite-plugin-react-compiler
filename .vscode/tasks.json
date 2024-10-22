@@ -16,7 +16,7 @@
     {
       "label": "bump version and deploy",
       "type": "shell",
-      "command": "cd lib && pnpm pre-publish && pnpm version ${input:version} && git add . && git commit -m \"bump version\" && pnpm publish",
+      "command": "cd lib && pnpm pre-publish && pnpm version ${input:version} && git add . && git commit -m \"bump version\" && pnpm npm-publish",
       "problemMatcher": []
     }
   ],

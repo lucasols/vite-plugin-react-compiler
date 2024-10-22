@@ -1,13 +1,13 @@
-import type { TransformOptions } from '@babel/core'
 import { transformAsync } from '@babel/core'
-import { Plugin } from 'vite'
+import { createFilter, Plugin } from 'vite'
 // @ts-ignore
 import babelPluginReactCompiler from 'babel-plugin-react-compiler'
 
 type Options = {
+  exclude?: string | RegExp | (string | RegExp)[]
+  includeFile?: (filePath: string, code: string) => boolean
   babelConfig?: string
   root?: string
-  filterFile?: (filepath: string, code: string) => boolean
   reactCompilerConfig?: {
     target?: '18' | '17' | '19'
   }
@@ -17,10 +17,14 @@ export function viteReactCompiler({
   babelConfig: babelConfigPath,
   root,
   reactCompilerConfig,
-  filterFile,
+  includeFile,
+  exclude,
 }: Options = {}): Plugin {
   let projectRoot = process.cwd()
   const tsRE = /\.tsx?$/
+  const defaultIncludeRE = /\.[tj]sx?$/
+
+  const defaultFilter = createFilter(defaultIncludeRE, exclude)
 
   return {
     name: 'vite-react-compiler',
@@ -31,17 +35,13 @@ export function viteReactCompiler({
     async transform(code, id) {
       if (id.includes('/node_modules/')) return
 
-      const babelOptions: TransformOptions = {
-        babelrc: false,
-        configFile: babelConfigPath,
-        plugins: [],
-      }
+      if (!defaultFilter(id)) return
 
       const [filepath] = id.split('?')
 
       if (!filepath) return
 
-      if (filterFile && !filterFile(filepath, code)) return
+      if (includeFile && !includeFile(filepath, code)) return
 
       const parserPlugins: ('jsx' | 'typescript')[] = []
 
@@ -54,18 +54,17 @@ export function viteReactCompiler({
       }
 
       const result = await transformAsync(code, {
-        ...babelOptions,
+        babelrc: false,
+        configFile: babelConfigPath,
         root: projectRoot,
         filename: id,
         sourceFileName: filepath,
         parserOpts: {
-          ...babelOptions.parserOpts,
           sourceType: 'module',
           allowAwaitOutsideFunction: true,
           plugins: parserPlugins,
         },
         generatorOpts: {
-          ...babelOptions.generatorOpts,
           decoratorsBeforeExport: true,
         },
         plugins: [[babelPluginReactCompiler, reactCompilerConfig]],

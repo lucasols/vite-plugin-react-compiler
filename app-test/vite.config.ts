@@ -1,9 +1,17 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
-import { ViteStableId } from '../lib/src/main'
+import { viteReactCompiler } from '../lib/src/main'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), Inspect(), ViteStableId()],
+  plugins: [
+    viteReactCompiler({
+      reactCompilerConfig: {
+        target: '18',
+      },
+    }),
+    react(),
+    Inspect(),
+  ],
 })

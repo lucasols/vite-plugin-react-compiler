@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "react": "^18.2.0",
+    "react-compiler-runtime": "19.0.0-beta-8a03594-20241020",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
