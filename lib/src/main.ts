@@ -6,7 +6,7 @@ import babelPluginReactCompiler from 'babel-plugin-react-compiler'
 type Options = {
   exclude?: string | RegExp | (string | RegExp)[]
   includeFile?: (filePath: string, code: string) => boolean
-  babelConfig?: string
+  babelConfig?: string | boolean
   root?: string
   reactCompilerConfig?: {
     target?: '18' | '17' | '19'
@@ -14,7 +14,7 @@ type Options = {
 }
 
 export function viteReactCompiler({
-  babelConfig: babelConfigPath,
+  babelConfig: babelConfigPath = false,
   root,
   reactCompilerConfig,
   includeFile,

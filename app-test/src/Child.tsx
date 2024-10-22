@@ -1,5 +1,7 @@
 /* eslint react-compiler/react-compiler: ["error"] */
 
+import { ForwardRef } from './FowardRef'
+
 export const Child = ({
   test,
   onClick,
@@ -7,5 +9,10 @@ export const Child = ({
   test: Record<string, any>
   onClick: () => void
 }) => {
-  return <div onClick={onClick}>Test Obj JSON {JSON.stringify(test)}</div>
+  return (
+    <div onClick={onClick}>
+      Test Obj JSON {JSON.stringify(test)}
+      <ForwardRef json={test} />
+    </div>
+  )
 }
