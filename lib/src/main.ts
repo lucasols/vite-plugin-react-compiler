@@ -1,6 +1,6 @@
 import { transformAsync } from '@babel/core'
 import { createFilter, Plugin } from 'vite'
-// @ts-expect-error
+// @ts-expect-error -- not typed
 import babelPluginReactCompiler from 'babel-plugin-react-compiler'
 
 type Options = {
