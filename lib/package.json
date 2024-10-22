@@ -1,7 +1,7 @@
 {
   "name": "@ls-stack/vite-plugin-react-compiler",
   "description": "A React Compiler Plugin compatible with `@vitejs/plugin-react-swc`",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "scripts": {
     "lint": "pnpm tsc && pnpm eslint",
