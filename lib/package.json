@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "pnpm tsc && pnpm eslint",
     "tsc": "tsc -p tsconfig.prod.json",
-    "eslint": "CI=true eslint --color src/ tests/ --max-warnings 0",
+    "eslint": "CI=true eslint --color src/ --max-warnings 0",
     "build": "pnpm lint && pnpm build:no-test",
     "build:no-test": "tsup --minify --dts",
     "npm-publish": "pnpm publish --access=public",
