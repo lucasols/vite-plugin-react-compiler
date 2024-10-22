@@ -1,6 +1,6 @@
 import { transformAsync } from '@babel/core'
 import { createFilter, Plugin } from 'vite'
-// @ts-ignore
+// @ts-expect-error
 import babelPluginReactCompiler from 'babel-plugin-react-compiler'
 
 type Options = {
@@ -72,9 +72,7 @@ export function viteReactCompiler({
       })
 
       if (result) {
-        let code = result.code!
-
-        return { code, map: result.map }
+        return { code: result.code!, map: result.map }
       }
 
       return
