@@ -7,6 +7,7 @@ type Options = {
   exclude?: string | RegExp | (string | RegExp)[]
   includeFile?: (filePath: string, code: string) => boolean
   babelConfig?: string | boolean
+  babelPlugins?: (string | [string, any])[]
   root?: string
   reactCompilerConfig?: {
     target?: '18' | '17' | '19'
@@ -19,6 +20,7 @@ export function viteReactCompiler({
   reactCompilerConfig,
   includeFile,
   exclude,
+  babelPlugins,
 }: Options = {}): Plugin {
   let projectRoot = process.cwd()
   const tsRE = /\.tsx?$/
@@ -67,7 +69,10 @@ export function viteReactCompiler({
         generatorOpts: {
           decoratorsBeforeExport: true,
         },
-        plugins: [[babelPluginReactCompiler, reactCompilerConfig]],
+        plugins: [
+          ...(babelPlugins ?? []),
+          [babelPluginReactCompiler, reactCompilerConfig],
+        ],
         sourceMaps: true,
       })
 
