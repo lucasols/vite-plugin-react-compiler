@@ -11,6 +11,7 @@ type Options = {
   root?: string
   reactCompilerConfig?: {
     target?: '18' | '17' | '19'
+    environment?: Record<string, any>
   }
 }
 
